@@ -1,6 +1,13 @@
 from decimal import Decimal
 
+from app.api.v1.endpoints.stocks import get_stock_service
 from app.main import app
+from app.providers.errors import (
+    StockProviderError,
+    StockProviderUnavailableError,
+)
+from app.providers.mock import MockStockDataProvider
+from app.services.stock_service import StockService
 from fastapi.testclient import TestClient
 
 client = TestClient(app)
@@ -93,3 +100,48 @@ def test_get_stock_history_rejects_empty_symbol() -> None:
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Stock symbol must not be empty"
+
+
+def test_unknown_stock_symbol_returns_404() -> None:
+    response = client.get("/api/v1/stocks/UNKNOWN/quote")
+
+    assert response.status_code == 404
+    assert "was not found" in response.json()["detail"]
+
+
+def test_provider_unavailable_returns_503() -> None:
+    class UnavailableProvider(MockStockDataProvider):
+        def get_quote(self, symbol: str):
+            raise StockProviderUnavailableError("Provider is unavailable")
+
+    app.dependency_overrides[get_stock_service] = lambda: StockService(
+        UnavailableProvider()
+    )
+
+    try:
+        response = client.get("/api/v1/stocks/AAPL/quote")
+    finally:
+        app.dependency_overrides.pop(get_stock_service, None)
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Provider is unavailable"
+
+
+def test_unexpected_provider_error_returns_502() -> None:
+    class FailingProvider(MockStockDataProvider):
+        def get_quote(self, symbol: str):
+            raise StockProviderError("Unexpected provider failure")
+
+    app.dependency_overrides[get_stock_service] = lambda: StockService(
+        FailingProvider()
+    )
+
+    try:
+        response = client.get("/api/v1/stocks/AAPL/quote")
+    finally:
+        app.dependency_overrides.pop(get_stock_service, None)
+
+    assert response.status_code == 502
+    assert response.json()["detail"] == (
+        "Stock data provider failed to fulfill the request"
+    )
