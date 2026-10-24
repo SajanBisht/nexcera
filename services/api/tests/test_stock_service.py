@@ -112,3 +112,41 @@ def test_get_historical_prices_rejects_empty_symbol(
 
     with pytest.raises(ValueError, match="Stock symbol must not be empty"):
         service.get_historical_prices("   ", start, end)
+
+
+def test_get_quote_rejects_symbol_with_invalid_characters(
+    service: StockService,
+) -> None:
+    with pytest.raises(ValueError, match="Stock symbol contains invalid characters"):
+        service.get_quote("AAP L")
+
+
+def test_get_quote_rejects_symbol_longer_than_20_characters(
+    service: StockService,
+) -> None:
+    with pytest.raises(ValueError, match="Stock symbol must not exceed 20 characters"):
+        service.get_quote("A" * 21)
+
+
+def test_get_historical_prices_rejects_mixed_timezone_awareness(
+    service: StockService,
+) -> None:
+    start = datetime(2026, 10, 24, 8, 0, tzinfo=UTC)
+    end = datetime(2026, 10, 24, 10, 0)
+
+    with pytest.raises(
+        ValueError,
+        match="Start and end timestamps must both be timezone-aware or both naive",
+    ):
+        service.get_historical_prices("AAPL", start, end)
+
+
+def test_get_historical_prices_accepts_timezone_aware_range(
+    service: StockService,
+) -> None:
+    start = datetime(2026, 10, 24, 8, 0, tzinfo=UTC)
+    end = datetime(2026, 10, 24, 10, 0, tzinfo=UTC)
+
+    prices = service.get_historical_prices("AAPL", start, end)
+
+    assert len(prices) == 1

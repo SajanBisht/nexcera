@@ -2,6 +2,9 @@ from datetime import datetime
 from decimal import Decimal
 
 from app.providers.base import StockDataProvider
+from app.providers.errors import (
+    StockNotFoundError,
+)
 from app.schemas.stock import HistoricalPrice, StockQuote
 
 
@@ -10,9 +13,7 @@ class MockStockDataProvider(StockDataProvider):
 
     def get_quote(self, symbol: str) -> StockQuote:
         normalized_symbol = symbol.strip().upper()
-
-        if not normalized_symbol:
-            raise ValueError("Stock symbol must not be empty")
+        self._validate_symbol(normalized_symbol)
 
         return StockQuote(
             symbol=normalized_symbol,
@@ -31,9 +32,10 @@ class MockStockDataProvider(StockDataProvider):
         end: datetime,
     ) -> list[HistoricalPrice]:
         normalized_symbol = symbol.strip().upper()
+        self._validate_symbol(normalized_symbol)
 
-        if not normalized_symbol:
-            raise ValueError("Stock symbol must not be empty")
+        if start.tzinfo is None or end.tzinfo is None:
+            raise ValueError("Start and end timestamps must be timezone-aware")
 
         if start > end:
             raise ValueError("Start time must not be after end time")
@@ -56,6 +58,21 @@ class MockStockDataProvider(StockDataProvider):
         ]
 
     @staticmethod
+    def _validate_symbol(symbol: str) -> None:
+        """Validate a symbol supported by the mock provider."""
+        if not symbol:
+            raise ValueError("Stock symbol must not be empty")
+
+        if len(symbol) > 20:
+            raise ValueError("Stock symbol must not exceed 20 characters")
+
+        if not all(character.isalnum() or character in ".-" for character in symbol):
+            raise ValueError("Stock symbol contains invalid characters")
+
+        if symbol not in {"AAPL", "MSFT", "GOOGL", "NVDA", "AMZN"}:
+            raise StockNotFoundError(f"Stock symbol '{symbol}' was not found")
+
+    @staticmethod
     def _get_company_name(symbol: str) -> str:
         """Return a sample company name for recognized symbols."""
         companies = {
@@ -66,4 +83,4 @@ class MockStockDataProvider(StockDataProvider):
             "AMZN": "Amazon.com Inc.",
         }
 
-        return companies.get(symbol, f"{symbol} Corporation")
+        return companies[symbol]

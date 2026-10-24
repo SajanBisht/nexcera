@@ -23,18 +23,33 @@ class StockService:
     ) -> list[HistoricalPrice]:
         """Retrieve historical prices for a stock within a time range."""
         normalized_symbol = self._normalize_symbol(symbol)
-
-        if start > end:
-            raise ValueError("Start time must not be after end time")
+        self._validate_date_range(start, end)
 
         return self.provider.get_historical_prices(normalized_symbol, start, end)
 
     @staticmethod
     def _normalize_symbol(symbol: str) -> str:
-        """Normalize a stock symbol and reject empty values."""
+        """Normalize a stock symbol and reject empty or malformed values."""
         normalized_symbol = symbol.strip().upper()
 
         if not normalized_symbol:
             raise ValueError("Stock symbol must not be empty")
 
+        if len(normalized_symbol) > 20:
+            raise ValueError("Stock symbol must not exceed 20 characters")
+
+        if not all(char.isalnum() or char in ".-" for char in normalized_symbol):
+            raise ValueError("Stock symbol contains invalid characters")
+
         return normalized_symbol
+
+    @staticmethod
+    def _validate_date_range(start: datetime, end: datetime) -> None:
+        """Validate date ordering and require consistent timezone awareness."""
+        if (start.tzinfo is None) != (end.tzinfo is None):
+            raise ValueError(
+                "Start and end timestamps must both be timezone-aware or both naive"
+            )
+
+        if start > end:
+            raise ValueError("Start time must not be after end time")
