@@ -1,0 +1,32 @@
+name: Nexcera CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  repository-check:
+    name: Repository Structure Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify project structure
+        run: |
+          test -d apps/frontend
+          test -d services/api
+          test -d ml
+          test -d data-pipeline
+          test -d contracts
+          test -d infrastructure
+          test -d tests
+          echo "Nexcera repository structure looks good!"
