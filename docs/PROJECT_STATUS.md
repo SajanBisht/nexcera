@@ -1,6 +1,6 @@
 # Nexcera — Project Status
 
-**Last updated:** 24 October 2026
+**Last updated:** 25 October 2026
 **Purpose:** Provide contributors with a shared overview of completed work, current development, and next steps.
 
 ## 1. Project Overview
@@ -10,17 +10,21 @@ Nexcera is a stock-market forecasting and paper-trading project. The repository 
 The current development focus is establishing a maintainable foundation before connecting the components into a complete application.
 
 ## 2. Current Development Snapshot
-
 | Area | Status | Notes |
 |---|---|---|
 | Repository structure | Complete | Core component directories are established. |
 | Python tooling | Complete | Ruff and pytest are configured. |
-| CI workflow | Operational | Repository checks and Python lint/test checks run in GitHub Actions. |
+| CI workflow | Operational | GitHub Actions checks repository structure, Python quality, and frontend quality. |
 | FastAPI foundation | Implemented | Health endpoints and application setup are available. |
 | Stock API | Implemented | Quote and historical-price endpoints use the provider/service architecture. |
 | Provider error handling | Implemented | Provider errors are translated into appropriate HTTP responses. |
-| Frontend foundation | In review | Dashboard foundation is in PR #8; all three CI checks passed. |
-| Frontend/API integration | Not started | Frontend still uses illustrative sample data. |
+| Frontend foundation | Complete | React, TypeScript, Vite, Tailwind CSS, and the dashboard are established. |
+| Login and Signup | Implemented | Authentication forms include input validation and local prototype account handling. |
+| Protected dashboard | Implemented | Dashboard routing checks the local session and redirects invalid sessions to Login. |
+| Dashboard user experience | Implemented | Displays the current prototype user's information and provides logout functionality. |
+| Frontend tests | Implemented | Vitest and React Testing Library; 19 tests cover Signup, Login, and ProtectedRoute. |
+| Frontend/API integration | Not started | Frontend still uses illustrative sample data; authentication is not connected to the backend. |
+| Production authentication | Not started | Backend authentication, password hashing, and server-side authorization remain future work. |
 | ML forecasting integration | Not started | Integration remains future work. |
 | Data-pipeline integration | Not started | End-to-end data flow remains future work. |
 | Paper-trading workflow | Not started | End-to-end functionality remains future work. |
@@ -53,22 +57,29 @@ The previously verified Python test suite passed 47 tests, with Ruff lint and fo
 
 ### Frontend foundation — PR #8
 
-Pull request: https://github.com/SajanBisht/nexcera/pull/8
+### Frontend — Dashboard and Authentication
 
-The frontend foundation includes:
+The frontend currently includes:
 
 - React and TypeScript with Vite.
-- Tailwind CSS.
-- Lucide icons.
+- Tailwind CSS and Lucide icons.
 - A responsive market-intelligence dashboard layout.
-- Illustrative portfolio summary cards and performance chart.
-- Illustrative market-index cards and watchlist.
+- Illustrative portfolio summary cards, performance chart, market-index cards, and watchlist.
 - A preview section for future AI market insights.
-- Frontend lint and production-build checks in GitHub Actions.
+- Login and Signup pages with client-side form validation.
+- Prototype account creation and login using browser localStorage.
+- Protected dashboard routing with session validation.
+- Dynamic user information in the dashboard sidebar.
+- Logout functionality.
+- Vitest and React Testing Library.
+- 19 frontend tests covering Signup, Login, and ProtectedRoute.
+- GitHub Actions checks for frontend linting, tests, and production builds.
 
-**PR status at the time of this document:** Open, with all three CI checks successful. Merge is still pending.
+**Implementation status:** Dashboard, Login, Signup, protected routing, and frontend tests are merged into `main` through PR #10.
 
-**Important limitation:** Dashboard figures are illustrative sample values. They are not live market prices, actual account balances, or validated AI forecasts.
+**Important authentication limitation:** Authentication is currently a frontend prototype. Account information and passwords are stored in localStorage, so this implementation must not be used with real or reused passwords. Production authentication requires backend credential verification, password hashing, secure session management, and server-side authorization.
+
+**Important dashboard limitation:** Dashboard figures are illustrative sample values. They are not live market prices, actual account balances, or validated AI forecasts.
 
 ## 4. Repository Structure
 
@@ -95,13 +106,7 @@ The exact files within each component may evolve as development progresses.
 
 These are proposed next steps, not commitments or completed work. Coordinate assignments through GitHub Issues.
 
-### Milestone 1 — Complete the frontend foundation
-
-- [ ] Merge PR #8 after reviewing its changes and confirming CI is green.
-- [ ] Confirm the merged frontend builds correctly from `main`.
-- [ ] Add the contribution and project-status documentation.
-
-### Milestone 2 — Connect frontend and API
+### Milestone 1 — Connect frontend and API
 
 - [ ] Configure API access for local frontend development.
 - [ ] Configure and test FastAPI CORS settings.
@@ -110,10 +115,19 @@ These are proposed next steps, not commitments or completed work. Coordinate ass
 - [ ] Add loading, error, and empty states.
 - [ ] Keep mock data clearly identified until a real data provider is integrated.
 
+### Milestone 2 — Implement production authentication
+
+- [ ] Design backend signup and login endpoints.
+- [ ] Implement secure password hashing and credential verification.
+- [ ] Establish secure session management.
+- [ ] Integrate the Login and Signup pages with the backend.
+- [ ] Enforce authentication and authorization on protected backend endpoints.
+- [ ] Add backend authentication tests and frontend integration tests.
+
 ### Milestone 3 — Strengthen application quality
 
-- [ ] Add frontend tests.
-- [ ] Add API integration tests where appropriate.
+- [ ] Add frontend/API integration tests.
+- [ ] Add end-to-end tests for key user flows.
 - [ ] Document local setup and component-specific workflows.
 - [ ] Ensure the full CI workflow remains green.
 
@@ -130,6 +144,7 @@ These are proposed next steps, not commitments or completed work. Coordinate ass
 - [ ] Define paper-trading rules and validation requirements.
 - [ ] Implement and test the simulated trading workflow.
 - [ ] Ensure simulated balances and trades cannot be mistaken for real brokerage activity.
+
 
 ## 6. How We Track Work
 
